@@ -35,7 +35,7 @@ class MyAppState extends ChangeNotifier {
 
   var favorites = <WordPair>[];
 
-  void toggleFavorites(){
+  void toggleFavorite(){
     if(favorites.contains(current)){
       favorites.remove(current);
     }
@@ -46,11 +46,52 @@ class MyAppState extends ChangeNotifier {
   }
 }
 
+
 class MyHomePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Row(
+        children: [
+          Expanded(
+            child: SafeArea( // SafeArea garantit que l'enfant n'est pas masqué par une encoche matériel
+              child: NavigationRail(
+                extended: true,
+                destinations: [
+                  NavigationRailDestination(      // destination 0 du navigationRail
+                    icon: Icon(Icons.home),
+                    label: Text('Home'),
+                  ),
+                  NavigationRailDestination(      // destination 1 du navigationRail
+                    icon: Icon(Icons.favorite),
+                    label: Text('Favorites'),
+                  ),
+                ],
+                selectedIndex: 0,
+                onDestinationSelected: (value) {  // la propriété onDestinationSelected est
+                  print('selected : $value');     // un callback qui est déclenché lorsque 
+                },                                
+              ),
+            ),
+          ),
+          Expanded(
+            child: Container(
+              color: Theme.of(context).colorScheme.primaryContainer,
+              child: GeneratorPage(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class GeneratorPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
     var pair = appState.current;
+
     IconData icon;
     if (appState.favorites.contains(pair)) {
       icon = Icons.favorite;
@@ -58,58 +99,37 @@ class MyHomePage extends StatelessWidget {
       icon = Icons.favorite_border;
     }
 
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            BigCard(pair: pair,),
-            SizedBox(height: 20,),
-            // NextButton(appState: appState),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    appState.getNext();
-                  },
-                  child: Text('Next'),
-                ),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    appState.toggleFavorites();
-                  },
-                  label: Text('Like'),
-                  icon: Icon(icon),
-                ),
-              ],
-            )
-            
-          ],
-        ),
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          BigCard(pair: pair),
+          SizedBox(height: 10),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ElevatedButton.icon(
+                onPressed: () {
+                  appState.toggleFavorite();
+                },
+                icon: Icon(icon),
+                label: Text('Like'),
+              ),
+              SizedBox(width: 10),
+              ElevatedButton(
+                onPressed: () {
+                  appState.getNext();
+                },
+                child: Text('Next'),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 }
 
-// class NextButton extends StatelessWidget {
-//   const NextButton({
-//     super.key,
-//     required this.appState,
-//   });
-
-//   final MyAppState appState;
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return ElevatedButton(
-//       onPressed: () {
-//         appState.getNext();
-//       },
-//       child: Text('Next'),
-//     );
-//   }
-// }
 
 class BigCard extends StatelessWidget {
   const BigCard({
