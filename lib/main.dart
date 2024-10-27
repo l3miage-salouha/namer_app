@@ -44,44 +44,118 @@ class MyAppState extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  // var selectedIndex = 0;
+  // void onChange(value){
+
+  // }
 }
 
 
-class MyHomePage extends StatelessWidget {
+class MyHomePage extends StatefulWidget {
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  var selectedIndex = 0;
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Row(
-        children: [
-          Expanded(
-            child: SafeArea( // SafeArea garantit que l'enfant n'est pas masqué par une encoche matériel
+    Widget page;
+    switch (selectedIndex) {
+      case 0:
+        page = GeneratorPage();
+        break;
+      case 1:
+        page = FavoritesPage();
+        break;
+      default:
+        throw UnimplementedError('no widget for $selectedIndex');
+    }
+
+    return LayoutBuilder(builder: (context, constraints) {
+      return Scaffold(
+        body: Row(
+          children: [
+            SafeArea(  // SafeArea garantit que l'enfant n'est pas masqué par une encoche matériel
               child: NavigationRail(
-                extended: true,
+                extended: constraints.maxWidth >= 600,  // ← Here.
                 destinations: [
-                  NavigationRailDestination(      // destination 0 du navigationRail
+                  NavigationRailDestination(  // destination 0 du navigationRail
                     icon: Icon(Icons.home),
                     label: Text('Home'),
                   ),
-                  NavigationRailDestination(      // destination 1 du navigationRail
+                  NavigationRailDestination(   // destination 1 du navigationRail
                     icon: Icon(Icons.favorite),
                     label: Text('Favorites'),
                   ),
                 ],
-                selectedIndex: 0,
-                onDestinationSelected: (value) {  // la propriété onDestinationSelected est
-                  print('selected : $value');     // un callback qui est déclenché lorsque 
-                },                                
+                selectedIndex: selectedIndex,
+                onDestinationSelected: (value) { // la propriété onDestinationSelected est
+                  setState(() { // un callback qui est déclenché lorsque 
+                    selectedIndex = value;
+                  });
+                },
               ),
             ),
-          ),
-          Expanded(
-            child: Container(
-              color: Theme.of(context).colorScheme.primaryContainer,
-              child: GeneratorPage(),
+            Expanded(
+              child: Container(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                child: page,
+              ),
             ),
+          ],
+        ),
+      );
+    });
+  }
+}
+
+class FavoritesPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context){
+    var appState = context.watch<MyAppState>();
+    if(appState.favorites.isEmpty){
+      return Center(
+        child: Text('There is no favorites yet!!'),
+      );
+    }
+    // return Center(
+    //   child: Column(
+    //     //mainAxisSize: MainAxisSize.min,
+    //     //mainAxisAlignment: MainAxisAlignment.center,
+    //     // crossAxisAlignment: CrossAxisAlignment.center,
+    //     children: [
+    //       for (var fav in favorite)
+    //         ListTile(
+    //           leading: Icon(Icons.transform_outlined),       // Icon or image displayed at the start.
+    //           title: Text(fav.asCamelCase),           // Main text displayed in the middle.
+    //           //subtitle: Text('Software Engineer'), // Secondary text under the title.
+    //           //trailing: Icon(Icons.), // Icon or widget at the end.
+    //           onTap: () {
+    //             // Action to perform when tapped.
+    //           },
+    //         )
+    //     ],
+    //   ),
+    // );
+
+    return ListView(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(10),
+          child: Text('You have '
+              '${appState.favorites.length} favorites:'),
+
+        ),
+        for (var pair in appState.favorites)
+          ListTile(
+            leading: Icon(Icons.favorite),
+            title: Text(pair.asLowerCase),
           ),
-        ],
-      ),
+
+      ],
     );
   }
 }
